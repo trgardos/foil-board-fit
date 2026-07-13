@@ -8,6 +8,8 @@ It's a side-view **statics** model. Drag a slider or the "you" handle and every
 force, guide line, and readout updates live. No build step, no dependencies —
 just open the HTML file.
 
+**Live site:** https://trgardos.github.io/foil-board-fit/
+
 ## The idea
 
 For a foil to fly level, your combined centre of gravity (you + board) has to
@@ -92,14 +94,15 @@ consistent speed unit works. Set **CoP travel** to `0` for pure statics.
 
 ## Running it
 
-Open [`foil_trim_balance.html`](foil_trim_balance.html) in any modern browser.
-That's it.
+Open [`index.html`](index.html) in any modern browser, or visit the
+[live site](https://trgardos.github.io/foil-board-fit/). That's it.
 
 ## Files
 
-- [`foil_trim_balance.html`](foil_trim_balance.html) — page markup
+- [`index.html`](index.html) — page markup (the site root for GitHub Pages)
 - [`styles.css`](styles.css) — styling
 - [`app.js`](app.js) — the model, SVG rendering, and interaction
+- [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) — GitHub Pages deploy workflow
 
 ## Caveats
 
