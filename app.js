@@ -1,26 +1,43 @@
 "use strict";
 const S = {
   a:0.20, L:0.40, f:0.11,
+  V:24, Vref:24, copTravel:0.03,   // speed, reference speed, CoP aft-travel scale (metres)
   Wr:85, Wb:7.6,
   boardLen:1.55, boardCG:0.72, padCenter:0.82, padLen:0.42,
-  trackFront:0.58, trackBack:0.86, mastPos:0.64,
+  trackLen:0.28, trackSetback:0.58,   // track length, and tail-to-aft-end-of-track (metres)
+  trackFront:0.58, trackBack:0.86,    // derived: aft/fwd ends of track, from tail
+  mastPos:0.64,
   rX:null   // rider position measured from tail (board frame), metres
 };
+
+// aft end of track = setback from tail; fwd end = setback + length
+function recomputeTrack(){
+  S.trackFront = S.trackSetback;
+  S.trackBack  = S.trackSetback + S.trackLen;
+}
 const g = 9.81;
 const $ = id => document.getElementById(id);
 const svg = $("scene");
 
 function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
 
+// Front-wing centre of pressure drifts with angle of attack (i.e. speed): faster ->
+// lower AoA -> CoP aft -> smaller effective offset. Ratio-based, so speed units cancel.
+function effA(){
+  const q = (S.Vref/S.V)**2;            // proportional to lift-coefficient ratio
+  return S.a - S.copTravel*(1 - q);
+}
+
 function derive(){
   S.mastPos = clamp(S.mastPos, S.trackFront, S.trackBack);
   const W = S.Wr + S.Wb;
   const b = S.boardCG - S.mastPos;      // board CG fwd of mast base
-  const u_CL = S.a + S.f*S.L;           // net lift fwd of mast base
+  const a_eff = effA();                 // speed-adjusted front-wing lift point
+  const u_CL = a_eff + S.f*S.L;         // net lift fwd of mast base
   const u_r_star = (W*u_CL - S.Wb*b)/S.Wr;
   const X_r_star = S.mastPos + u_r_star;
   const mastNeeded = S.padCenter - u_r_star;   // mast-from-tail to centre stance on pad
-  return {W,b,u_CL,u_r_star,X_r_star,mastNeeded,
+  return {W,b,a_eff,u_CL,u_r_star,X_r_star,mastNeeded,
     S_force:S.f*W, L_front:W*(1+S.f)};
 }
 
@@ -68,6 +85,7 @@ function render(){
   const trkAU=S.trackFront-S.mastPos, trkBU=S.trackBack-S.mastPos;
 
   const xf=px(u_f), xs=px(u_s), xcl=px(u_CL), xb=px(u_b), xr=px(u_r);
+  const xfl=px(d.a_eff);   // where front-wing lift acts (centre of pressure, shifts with speed)
   const xmast=px(0);
 
   const pivX=xcl, pivY=Y.wing;
@@ -114,7 +132,7 @@ function render(){
   g_+=`<g transform="rotate(${tiltDeg.toFixed(2)} ${pivX.toFixed(1)} ${pivY})">${body}</g>`;
 
   // force vectors (vertical, anchored to tilted structure)
-  const [lx,ly]=rot(xf,Y.wing-6);  g_+=arrow(lx,ly,ly-len(d.L_front),"var(--lift)",3);
+  const [lx,ly]=rot(xfl,Y.wing-6);  g_+=arrow(lx,ly,ly-len(d.L_front),"var(--lift)",3);
   const [sx,sy]=rot(xs,Y.wing+6);  g_+=arrow(sx,sy,sy+len(d.S_force),"var(--down)",3);
   const [bx,by]=rot(xb,Y.deck);    g_+=arrow(bx,by,by+len(S.Wb*3.2),"var(--board)",2.5);
   g_+=`<circle cx="${bx}" cy="${by}" r="4" fill="var(--board)"/>`;
@@ -194,6 +212,9 @@ function fmtSlider(id,key,factor,fmt){
 fmtSlider("a","a",0.01,v=>v+" cm");
 fmtSlider("f","f",0.01,v=>v+"%");
 fmtSlider("L","L",0.01,v=>v+" cm");
+fmtSlider("speed","V",1,v=>v+" km/h");
+fmtSlider("speedRef","Vref",1,v=>v);
+fmtSlider("cop","copTravel",0.01,v=>v);
 fmtSlider("Wr","Wr",1,v=>v);
 fmtSlider("Wb","Wb",1,v=>v);
 fmtSlider("padCenter","padCenter",0.01,v=>v+" cm");
@@ -204,39 +225,44 @@ fmtSlider("mastPos","mastPos",0.01,v=>v+" cm");
 
 function updateMastBounds(){
   const el=$("mastPos");
-  el.min=$("trackFront").value; el.max=$("trackBack").value;
+  el.min=(S.trackFront*100).toFixed(0); el.max=(S.trackBack*100).toFixed(0);
   S.mastPos=clamp(S.mastPos, S.trackFront, S.trackBack);
   el.value=(S.mastPos*100).toFixed(1);
   $("v-mastPos").textContent=(S.mastPos*100).toFixed(0)+" cm";
 }
-["trackFront","trackBack"].forEach(id=>{
-  const key=id, out=$("v-"+id);
+["trackLen","trackSetback"].forEach(id=>{
+  const out=$("v-"+id);
   $(id).addEventListener("input",()=>{
-    S[key]=parseFloat($(id).value)/100;
-    if(S.trackFront>S.trackBack){ // keep ordered
-      if(id==="trackFront"){S.trackFront=S.trackBack;$(id).value=(S.trackFront*100).toFixed(0);}
-      else{S.trackBack=S.trackFront;$(id).value=(S.trackBack*100).toFixed(0);}
-    }
-    out.textContent=Math.round(S[key]*100);
-    updateMastBounds(); render();
+    S[id]=parseFloat($(id).value)/100;
+    out.textContent=Math.round(S[id]*100);
+    recomputeTrack(); updateMastBounds(); render();
   });
 });
 
+// board / foil name labels feed the header kicker
+function updateNames(){
+  const bn=$("boardName").value.trim(), fn=$("foilName").value.trim();
+  const parts=[fn,bn].filter(Boolean);
+  $("kicker").textContent = parts.length ? parts.join(" · ")+" · track fit" : "Wing foil · trim & track fit";
+}
+["boardName","foilName"].forEach(id=>$(id).addEventListener("input",updateNames));
+
 $("snap").addEventListener("click",()=>{ S.rX=derive().X_r_star; render(); });
 $("reset").addEventListener("click",()=>{
-  Object.assign(S,{a:0.20,L:0.40,f:0.11,Wr:85,Wb:7.6,boardLen:1.55,boardCG:0.72,
-    padCenter:0.82,padLen:0.42,trackFront:0.58,trackBack:0.86,mastPos:0.64,rX:null});
+  Object.assign(S,{a:0.20,L:0.40,f:0.11,V:24,Vref:24,copTravel:0.03,Wr:85,Wb:7.6,boardLen:1.55,boardCG:0.72,
+    padCenter:0.82,padLen:0.42,trackLen:0.28,trackSetback:0.58,trackFront:0.58,trackBack:0.86,mastPos:0.64,rX:null});
   const set=(id,v,t)=>{$(id).value=v; if($("v-"+id))$("v-"+id).textContent=t;};
   set("a",20,"20 cm");set("f",11,"11%");set("L",40,"40 cm");set("Wr",85,"85");set("Wb",7.6,"7.6");
+  set("speed",24,"24 km/h");set("speedRef",24,"24");set("cop",3,"3");
   set("padCenter",82,"82 cm");set("padLen",42,"42 cm");set("boardLen",155,"155");set("boardCG",72,"72");
-  set("trackFront",58,"58");set("trackBack",86,"86");
-  updateMastBounds(); render();
+  set("trackLen",28,"28");set("trackSetback",58,"58");
+  recomputeTrack(); updateMastBounds(); render();
 });
 
 $("calib").addEventListener("click",()=>{
   const meas=(parseFloat($("meas").value)||0)/100;
   const W=S.Wr+S.Wb, b=S.boardCG-S.mastPos;
-  let f=(S.Wr*meas + S.Wb*b - W*S.a)/(W*S.L);
+  let f=(S.Wr*meas + S.Wb*b - W*effA())/(W*S.L);
   const note=$("calib-note");
   if(f<0||f>0.30){
     note.style.color="var(--warn)";
@@ -250,5 +276,7 @@ $("calib").addEventListener("click",()=>{
   S.rX=null; render();
 });
 
+recomputeTrack();
+updateNames();
 updateMastBounds();
 render();

@@ -52,6 +52,8 @@ input[type=range].mast{accent-color:var(--track)}
 .calib{margin-top:6px;padding-top:12px;border-top:1px solid var(--grid)}
 .num{width:74px;font:inherit;font-family:ui-monospace,monospace;padding:6px 8px;
   border:1px solid var(--hair);border-radius:6px}
+input[type=text].name{width:100%;font:inherit;padding:6px 8px;
+  border:1px solid var(--hair);border-radius:6px;background:var(--panel)}
 .tag{font-family:ui-monospace,monospace;font-size:12px;padding:2px 8px;border-radius:20px;font-weight:600}
 .tag.up{background:#fbe9e3;color:#b8431f}
 .tag.down{background:#e9f4ef;color:#137a58}
