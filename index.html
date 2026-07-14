@@ -22,6 +22,23 @@
     <button class="tab" id="tab-experiment" role="tab" aria-selected="false" aria-controls="panel-experiment">② Experiment — tune the fit</button>
   </div>
 
+  <div class="unitbar">
+    <span class="unitbar-lead">Units</span>
+    <label class="unitpick">Length
+      <select id="unitLen">
+        <option value="cm">cm</option>
+        <option value="ftin">ft / in</option>
+      </select>
+    </label>
+    <label class="unitpick">Speed
+      <select id="unitSpd">
+        <option value="kmh">km/h</option>
+        <option value="mph">mph</option>
+        <option value="kn">knots</option>
+      </select>
+    </label>
+  </div>
+
   <!-- ───────────── SETUP: describe the board & foil ───────────── -->
   <section id="panel-setup" class="panel" role="tabpanel" aria-labelledby="tab-setup">
     <p class="panel-lead">Describe the board and foil you're checking. These are the measurements — set them once,
@@ -63,7 +80,7 @@
               <input id="trackSetback" type="range" min="15" max="110" step="1" value="58">
             </div>
           </div>
-          <p class="hint">All in cm from the tail. Track length is the slot the mast slides in; the setback is from the
+          <p class="hint">All measured from the tail. Track length is the slot the mast slides in; the setback is from the
             board's aft end (tail) to the back of the track. Together they set how far forward or back the foil can go.
             Measure these on a candidate board to test whether it fits.</p>
         </div>
@@ -105,7 +122,7 @@
             <p class="hint" style="margin-bottom:8px">Measure, on your current board, from the mast base to the centre
               of your normal stance, and match the model to it.</p>
             <div class="row">
-              <input class="num mono" id="meas" type="number" value="25" step="0.5"> <span class="hint">cm fwd of mast base</span>
+              <input class="num mono" id="meas" type="number" value="25" step="0.5"> <span class="hint"><span id="meas-unit">cm</span> fwd of mast base</span>
               <button class="btn ghost" id="calib">Match trim</button>
             </div>
             <p class="hint" id="calib-note" style="margin-top:8px"></p>
@@ -131,8 +148,8 @@
             </div>
           </div>
           <p class="hint">Geometry above is defined at the reference speed. Going faster lowers the angle of attack and
-            the front wing's centre of pressure drifts aft (up to <em>CoP travel</em> cm); slower pushes it forward.
-            Set CoP travel to 0 for pure statics. Any consistent speed unit works — only the ratio matters.</p>
+            the front wing's centre of pressure drifts aft (up to the <em>CoP travel</em> distance); slower pushes it
+            forward. Set CoP travel to 0 for pure statics. Any consistent speed unit works — only the ratio matters.</p>
         </div>
       </div>
     </div>

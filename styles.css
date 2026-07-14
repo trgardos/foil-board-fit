@@ -24,6 +24,13 @@ h1{font-family:ui-monospace,monospace;font-weight:600;font-size:clamp(20px,3.4vw
 .tab:hover{color:var(--ink)}
 .tab:focus-visible{outline:2px solid var(--water);outline-offset:3px;border-radius:3px}
 .panel[hidden]{display:none}
+.unitbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:14px;
+  font-size:12px;color:var(--muted)}
+.unitbar-lead{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.unitpick{display:inline-flex;align-items:center;gap:6px}
+.unitpick select{font:inherit;font-size:12px;padding:4px 6px;border:1px solid var(--hair);
+  border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+.unitpick select:focus-visible{outline:2px solid var(--water);outline-offset:2px}
 .panel-lead{color:var(--muted);font-size:13px;line-height:1.5;margin:16px 0 0;max-width:74ch}
 .grid{display:grid;grid-template-columns:1fr 348px;gap:22px;margin-top:22px}
 @media(max-width:900px){.grid{grid-template-columns:1fr}}
