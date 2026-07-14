@@ -12,164 +12,194 @@
     <p class="kicker" id="kicker">Wing foil · trim &amp; track fit</p>
     <h1>Foil trim, stance &amp; track fit</h1>
     <p class="sub">Side-view statics for any wing-foil board and foil. Your combined centre of gravity (you + board)
-      wants to sit over the foil's net centre of lift, or the board pitches. Enter a board's track length and how far
-      it sits from the tail, plus your foil's geometry — then slide the mast base along the track and watch where your
-      balanced stance lands relative to the footpad. That's the board-shopping question in one picture.</p>
+      wants to sit over the foil's net centre of lift, or the board pitches. First describe a board and foil, then
+      slide the mast base along the track and watch where your balanced stance lands relative to the footpad — the
+      board-shopping question in one picture.</p>
   </header>
 
-  <div class="grid">
-    <div>
-      <div class="card stage">
-        <svg id="scene" viewBox="0 0 960 560" role="img" aria-label="Side view of board, track and foil with force vectors"></svg>
-        <div class="legend">
-          <span><i class="sw" style="background:var(--lift)"></i>Front-wing lift</span>
-          <span><i class="sw" style="background:var(--down)"></i>Stab download</span>
-          <span><i class="sw" style="background:var(--rider)"></i>You (drag)</span>
-          <span><i class="sw" style="background:var(--board)"></i>Board weight</span>
-          <span><i class="sw box" style="background:var(--pad);opacity:.5"></i>Footpad</span>
-          <span><i class="sw box" style="background:var(--track)"></i>Track</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <p class="panel-title">Board fit</p>
-        <div class="readouts">
-          <div class="ro"><span class="k">Balanced stance, from tail</span><span class="v" id="ro-fromtail">–</span></div>
-          <div class="ro"><span class="k">Footpad zone, from tail</span><span class="v" id="ro-padzone">–</span></div>
-          <div class="ro"><span class="k">Balanced stance lands on the pad?</span><span id="ro-onpad" class="tag level">–</span></div>
-          <div class="ro"><span class="k">Mast to centre stance on pad</span><span class="v" id="ro-need">–</span></div>
-          <div class="ro"><span class="k">…reachable within this track?</span><span id="ro-reach" class="tag level">–</span></div>
-        </div>
-      </div>
-    </div>
-
-    <div>
-      <div class="card">
-        <p class="panel-title">Trim result</p>
-        <div class="readouts">
-          <div class="ro big"><span class="k">Balanced stance — fwd of mast base</span><span class="v" id="ro-delta">–</span></div>
-          <div class="ro"><span class="k">Your stance now (drag to move)</span><span class="v" id="ro-cur">–</span></div>
-          <div class="ro"><span class="k">Pitch tendency now</span><span id="ro-trim" class="tag level">–</span></div>
-          <div class="ro"><span class="k">CG offset from lift line</span><span class="v" id="ro-off">–</span></div>
-          <div class="ro"><span class="k">Net pitch moment</span><span class="v" id="ro-mom">–</span></div>
-        </div>
-        <div class="row" style="margin-top:12px">
-          <button class="btn" id="snap">Snap me to balanced</button>
-          <button class="btn ghost" id="reset">Reset</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <p class="panel-title">Board &amp; track — slide the mast</p>
-        <div class="ctrl">
-          <label style="display:block"><b>Board name</b></label>
-          <input id="boardName" class="name" type="text" placeholder="e.g. 105 L wing board">
-        </div>
-        <div class="ctrl">
-          <label><b>Mast base, from tail</b><span class="val" id="v-mastPos">64 cm</span></label>
-          <input id="mastPos" class="mast" type="range" min="58" max="86" step="0.5" value="64">
-          <p class="hint">This is your track position. It's clamped to the track range below — that's the whole point.</p>
-        </div>
-        <div class="two">
-          <div class="ctrl">
-            <label style="display:block"><b>Mast track length</b> <span class="val mono" id="v-trackLen">28</span></label>
-            <input id="trackLen" type="range" min="8" max="60" step="1" value="28">
-          </div>
-          <div class="ctrl">
-            <label style="display:block"><b>Tail → track (aft end)</b> <span class="val mono" id="v-trackSetback">58</span></label>
-            <input id="trackSetback" type="range" min="15" max="110" step="1" value="58">
-          </div>
-        </div>
-        <p class="hint">Track length is the slot the mast slides in; the setback is from the board's aft end (tail) to
-          the back of the track. Together they set how far forward or back the foil can go.</p>
-        <div class="ctrl">
-          <label><b>Footpad centre, from tail</b><span class="val" id="v-padCenter">82 cm</span></label>
-          <input id="padCenter" type="range" min="40" max="130" step="1" value="82">
-          <p class="hint">Middle of where you actually stand on the deck pad.</p>
-        </div>
-        <div class="ctrl">
-          <label><b>Footpad length</b><span class="val" id="v-padLen">42 cm</span></label>
-          <input id="padLen" type="range" min="20" max="70" step="1" value="42">
-        </div>
-        <div class="two">
-          <div class="ctrl">
-            <label style="display:block"><b>Board length</b> <span class="val mono" id="v-boardLen">155</span></label>
-            <input id="boardLen" type="range" min="110" max="200" step="1" value="155">
-          </div>
-          <div class="ctrl">
-            <label style="display:block"><b>Board CG f/tail</b> <span class="val mono" id="v-boardCG">72</span></label>
-            <input id="boardCG" type="range" min="40" max="130" step="1" value="72">
-          </div>
-        </div>
-        <p class="hint">All in cm from the tail. Measure these on a candidate board to test whether it fits.</p>
-      </div>
-
-      <div class="card">
-        <p class="panel-title">Forces &amp; foil geometry</p>
-        <div class="ctrl">
-          <label style="display:block"><b>Foil name</b></label>
-          <input id="foilName" class="name" type="text" placeholder="e.g. 850 front wing + 280 stab">
-        </div>
-        <div class="ctrl">
-          <label><b>Front wing ahead of mast base</b><span class="val" id="v-a">20 cm</span></label>
-          <input id="a" type="range" min="0" max="32" step="0.5" value="20">
-          <p class="hint">Horizontal distance from the mast to the front wing's centre of lift — the dominant term in
-            stance position. Measure it on your fuselage, or estimate from the wing chord.</p>
-        </div>
-        <div class="ctrl">
-          <label><b>Stabiliser download</b><span class="val" id="v-f">11%</span></label>
-          <input id="f" type="range" min="0" max="25" step="0.5" value="11">
-        </div>
-        <div class="ctrl">
-          <label><b>Fuselage length (wing → stab)</b><span class="val" id="v-L">40 cm</span></label>
-          <input id="L" type="range" min="30" max="55" step="0.5" value="40">
-        </div>
-        <div class="two">
-          <div class="ctrl">
-            <label style="display:block"><b>You + gear</b> <span class="val mono" id="v-Wr">85</span></label>
-            <input id="Wr" type="range" min="55" max="110" step="0.5" value="85">
-          </div>
-          <div class="ctrl">
-            <label style="display:block"><b>Board kg</b> <span class="val mono" id="v-Wb">7.6</span></label>
-            <input id="Wb" type="range" min="3" max="9" step="0.1" value="7.6">
-          </div>
-        </div>
-        <div class="calib">
-          <p class="panel-title" style="border:none;margin-bottom:8px">Calibrate to reality</p>
-          <p class="hint" style="margin-bottom:8px">Measure, on your current board, from the mast base to the centre
-            of your normal stance, and match the model to it.</p>
-          <div class="row">
-            <input class="num mono" id="meas" type="number" value="25" step="0.5"> <span class="hint">cm fwd of mast base</span>
-            <button class="btn ghost" id="calib">Match trim</button>
-          </div>
-          <p class="hint" id="calib-note" style="margin-top:8px"></p>
-        </div>
-      </div>
-
-      <div class="card">
-        <p class="panel-title">Speed &amp; angle of attack</p>
-        <div class="ctrl">
-          <label><b>Board speed</b><span class="val" id="v-speed">24 km/h</span></label>
-          <input id="speed" type="range" min="12" max="45" step="0.5" value="24">
-          <p class="hint">In steady flight total lift always equals your weight, so faster ≠ more lift. What speed
-            changes is the <em>angle of attack</em> — which nudges where the front wing's lift acts.</p>
-        </div>
-        <div class="two">
-          <div class="ctrl">
-            <label style="display:block"><b>Trim / ref speed</b> <span class="val mono" id="v-speedRef">24</span></label>
-            <input id="speedRef" type="range" min="12" max="45" step="0.5" value="24">
-          </div>
-          <div class="ctrl">
-            <label style="display:block"><b>CoP travel</b> <span class="val mono" id="v-cop">3</span></label>
-            <input id="cop" type="range" min="0" max="8" step="0.5" value="3">
-          </div>
-        </div>
-        <p class="hint">Geometry above is defined at the reference speed. Going faster lowers the angle of attack and
-          the front wing's centre of pressure drifts aft (up to <em>CoP travel</em> cm); slower pushes it forward.
-          Set CoP travel to 0 for pure statics. Any consistent speed unit works — only the ratio matters.</p>
-      </div>
-    </div>
+  <div class="tabs" role="tablist" aria-label="Steps">
+    <button class="tab" id="tab-setup" role="tab" aria-selected="true" aria-controls="panel-setup">① Setup — your board &amp; foil</button>
+    <button class="tab" id="tab-experiment" role="tab" aria-selected="false" aria-controls="panel-experiment">② Experiment — tune the fit</button>
   </div>
+
+  <!-- ───────────── SETUP: describe the board & foil ───────────── -->
+  <section id="panel-setup" class="panel" role="tabpanel" aria-labelledby="tab-setup">
+    <p class="panel-lead">Describe the board and foil you're checking. These are the measurements — set them once,
+      then head to <b>Experiment</b> to tune the fit.</p>
+    <div class="grid">
+      <div>
+        <div class="card">
+          <p class="panel-title">Board &amp; track</p>
+          <div class="ctrl">
+            <label style="display:block"><b>Board name</b></label>
+            <input id="boardName" class="name" type="text" placeholder="e.g. 105 L wing board">
+          </div>
+          <div class="two">
+            <div class="ctrl">
+              <label style="display:block"><b>Board length</b> <span class="val mono" id="v-boardLen">155</span></label>
+              <input id="boardLen" type="range" min="110" max="200" step="1" value="155">
+            </div>
+            <div class="ctrl">
+              <label style="display:block"><b>Board CG f/tail</b> <span class="val mono" id="v-boardCG">72</span></label>
+              <input id="boardCG" type="range" min="40" max="130" step="1" value="72">
+            </div>
+          </div>
+          <div class="ctrl">
+            <label><b>Footpad centre, from tail</b><span class="val" id="v-padCenter">82 cm</span></label>
+            <input id="padCenter" type="range" min="40" max="130" step="1" value="82">
+            <p class="hint">Middle of where you actually stand on the deck pad.</p>
+          </div>
+          <div class="ctrl">
+            <label><b>Footpad length</b><span class="val" id="v-padLen">42 cm</span></label>
+            <input id="padLen" type="range" min="20" max="70" step="1" value="42">
+          </div>
+          <div class="two">
+            <div class="ctrl">
+              <label style="display:block"><b>Mast track length</b> <span class="val mono" id="v-trackLen">28</span></label>
+              <input id="trackLen" type="range" min="8" max="60" step="1" value="28">
+            </div>
+            <div class="ctrl">
+              <label style="display:block"><b>Tail → track (aft end)</b> <span class="val mono" id="v-trackSetback">58</span></label>
+              <input id="trackSetback" type="range" min="15" max="110" step="1" value="58">
+            </div>
+          </div>
+          <p class="hint">All in cm from the tail. Track length is the slot the mast slides in; the setback is from the
+            board's aft end (tail) to the back of the track. Together they set how far forward or back the foil can go.
+            Measure these on a candidate board to test whether it fits.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <p class="panel-title">Forces &amp; foil geometry</p>
+          <div class="ctrl">
+            <label style="display:block"><b>Foil name</b></label>
+            <input id="foilName" class="name" type="text" placeholder="e.g. 850 front wing + 280 stab">
+          </div>
+          <div class="ctrl">
+            <label><b>Front wing ahead of mast base</b><span class="val" id="v-a">20 cm</span></label>
+            <input id="a" type="range" min="0" max="32" step="0.5" value="20">
+            <p class="hint">Horizontal distance from the mast to the front wing's centre of lift — the dominant term in
+              stance position. Measure it on your fuselage, or estimate from the wing chord.</p>
+          </div>
+          <div class="ctrl">
+            <label><b>Stabiliser download</b><span class="val" id="v-f">11%</span></label>
+            <input id="f" type="range" min="0" max="25" step="0.5" value="11">
+          </div>
+          <div class="ctrl">
+            <label><b>Fuselage length (wing → stab)</b><span class="val" id="v-L">40 cm</span></label>
+            <input id="L" type="range" min="30" max="55" step="0.5" value="40">
+          </div>
+          <div class="two">
+            <div class="ctrl">
+              <label style="display:block"><b>You + gear</b> <span class="val mono" id="v-Wr">85</span></label>
+              <input id="Wr" type="range" min="55" max="110" step="0.5" value="85">
+            </div>
+            <div class="ctrl">
+              <label style="display:block"><b>Board kg</b> <span class="val mono" id="v-Wb">7.6</span></label>
+              <input id="Wb" type="range" min="3" max="9" step="0.1" value="7.6">
+            </div>
+          </div>
+          <div class="calib">
+            <p class="panel-title" style="border:none;margin-bottom:8px">Calibrate to reality</p>
+            <p class="hint" style="margin-bottom:8px">Measure, on your current board, from the mast base to the centre
+              of your normal stance, and match the model to it.</p>
+            <div class="row">
+              <input class="num mono" id="meas" type="number" value="25" step="0.5"> <span class="hint">cm fwd of mast base</span>
+              <button class="btn ghost" id="calib">Match trim</button>
+            </div>
+            <p class="hint" id="calib-note" style="margin-top:8px"></p>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="panel-title">Speed &amp; angle of attack</p>
+          <div class="ctrl">
+            <label><b>Board speed</b><span class="val" id="v-speed">24 km/h</span></label>
+            <input id="speed" type="range" min="12" max="45" step="0.5" value="24">
+            <p class="hint">In steady flight total lift always equals your weight, so faster ≠ more lift. What speed
+              changes is the <em>angle of attack</em> — which nudges where the front wing's lift acts.</p>
+          </div>
+          <div class="two">
+            <div class="ctrl">
+              <label style="display:block"><b>Trim / ref speed</b> <span class="val mono" id="v-speedRef">24</span></label>
+              <input id="speedRef" type="range" min="12" max="45" step="0.5" value="24">
+            </div>
+            <div class="ctrl">
+              <label style="display:block"><b>CoP travel</b> <span class="val mono" id="v-cop">3</span></label>
+              <input id="cop" type="range" min="0" max="8" step="0.5" value="3">
+            </div>
+          </div>
+          <p class="hint">Geometry above is defined at the reference speed. Going faster lowers the angle of attack and
+            the front wing's centre of pressure drifts aft (up to <em>CoP travel</em> cm); slower pushes it forward.
+            Set CoP travel to 0 for pure statics. Any consistent speed unit works — only the ratio matters.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:2px">
+      <button class="btn" id="goExperiment">Tune the fit →</button>
+    </div>
+  </section>
+
+  <!-- ───────────── EXPERIMENT: tune the fit ───────────── -->
+  <section id="panel-experiment" class="panel" role="tabpanel" aria-labelledby="tab-experiment" hidden>
+    <p class="panel-lead">Slide the mast along the track and drag the <b>you</b> handle on the deck. The picture and the
+      fit verdicts update live. Adjusting a board or foil measurement? Pop back to <b>Setup</b>.</p>
+    <div class="grid">
+      <div>
+        <div class="card stage">
+          <svg id="scene" viewBox="0 0 960 560" role="img" aria-label="Side view of board, track and foil with force vectors"></svg>
+          <div class="legend">
+            <span><i class="sw" style="background:var(--lift)"></i>Front-wing lift</span>
+            <span><i class="sw" style="background:var(--down)"></i>Stab download</span>
+            <span><i class="sw" style="background:var(--rider)"></i>You (drag)</span>
+            <span><i class="sw" style="background:var(--board)"></i>Board weight</span>
+            <span><i class="sw box" style="background:var(--pad);opacity:.5"></i>Footpad</span>
+            <span><i class="sw box" style="background:var(--track)"></i>Track</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="panel-title">Board fit</p>
+          <div class="readouts">
+            <div class="ro"><span class="k">Balanced stance, from tail</span><span class="v" id="ro-fromtail">–</span></div>
+            <div class="ro"><span class="k">Footpad zone, from tail</span><span class="v" id="ro-padzone">–</span></div>
+            <div class="ro"><span class="k">Balanced stance lands on the pad?</span><span id="ro-onpad" class="tag level">–</span></div>
+            <div class="ro"><span class="k">Mast to centre stance on pad</span><span class="v" id="ro-need">–</span></div>
+            <div class="ro"><span class="k">…reachable within this track?</span><span id="ro-reach" class="tag level">–</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <p class="panel-title">Tune the fit — slide the mast, drag your stance</p>
+          <div class="ctrl">
+            <label><b>Mast base, from tail</b><span class="val" id="v-mastPos">64 cm</span></label>
+            <input id="mastPos" class="mast" type="range" min="58" max="86" step="0.5" value="64">
+            <p class="hint">Where the foil sits in the track. It's clamped to the track range you set in <b>Setup</b> —
+              that's the whole point. Drag the “you” handle on the picture to move your stance.</p>
+          </div>
+          <div class="row">
+            <button class="btn" id="snap">Snap me to balanced</button>
+            <button class="btn ghost" id="reset">Reset all</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="panel-title">Trim result</p>
+          <div class="readouts">
+            <div class="ro big"><span class="k">Balanced stance — fwd of mast base</span><span class="v" id="ro-delta">–</span></div>
+            <div class="ro"><span class="k">Your stance now (drag to move)</span><span class="v" id="ro-cur">–</span></div>
+            <div class="ro"><span class="k">Pitch tendency now</span><span id="ro-trim" class="tag level">–</span></div>
+            <div class="ro"><span class="k">CG offset from lift line</span><span class="v" id="ro-off">–</span></div>
+            <div class="ro"><span class="k">Net pitch moment</span><span class="v" id="ro-mom">–</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <details>
     <summary>How to read it &amp; use it for board shopping</summary>

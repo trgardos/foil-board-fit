@@ -276,6 +276,19 @@ $("calib").addEventListener("click",()=>{
   S.rX=null; render();
 });
 
+// tabs: Setup (describe board+foil) / Experiment (tune the fit)
+const TABS=[["tab-setup","panel-setup"],["tab-experiment","panel-experiment"]];
+function selectTab(tabId){
+  TABS.forEach(([t,p])=>{
+    const on=t===tabId;
+    $(t).setAttribute("aria-selected", on?"true":"false");
+    $(p).hidden=!on;
+  });
+  if(tabId==="tab-experiment") render();   // scene was hidden; refresh now it's laid out
+}
+TABS.forEach(([t])=>$(t).addEventListener("click",()=>selectTab(t)));
+$("goExperiment").addEventListener("click",()=>selectTab("tab-experiment"));
+
 recomputeTrack();
 updateNames();
 updateMastBounds();

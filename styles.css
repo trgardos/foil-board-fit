@@ -16,6 +16,15 @@ header{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:20px
 h1{font-family:ui-monospace,monospace;font-weight:600;font-size:clamp(20px,3.4vw,30px);
   letter-spacing:.02em;margin:0;text-transform:uppercase}
 .sub{color:var(--muted);font-size:14px;margin:8px 0 0;max-width:74ch;line-height:1.5}
+.tabs{display:flex;gap:22px;margin-top:12px;border-bottom:2px solid var(--ink)}
+.tab{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  cursor:pointer;border:none;background:none;color:var(--muted);padding:10px 2px 12px;margin-bottom:-2px;
+  border-bottom:2px solid transparent}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--ink)}
+.tab:hover{color:var(--ink)}
+.tab:focus-visible{outline:2px solid var(--water);outline-offset:3px;border-radius:3px}
+.panel[hidden]{display:none}
+.panel-lead{color:var(--muted);font-size:13px;line-height:1.5;margin:16px 0 0;max-width:74ch}
 .grid{display:grid;grid-template-columns:1fr 348px;gap:22px;margin-top:22px}
 @media(max-width:900px){.grid{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:16px;margin-bottom:16px}
