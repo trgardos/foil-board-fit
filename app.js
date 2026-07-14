@@ -22,8 +22,8 @@ const svg = $("scene");
 function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
 
 // ---- unit display (internal state stays metres / km/h; convert at the edge) ----
-S.units = {len:"cm", spd:"kmh"};
-try{ const u=JSON.parse(localStorage.getItem("fbf-units")); if(u&&u.len&&u.spd) S.units=u; }catch(e){}
+S.units = {len:"cm", spd:"kmh", wt:"kg"};
+try{ const u=JSON.parse(localStorage.getItem("fbf-units")); if(u&&u.len&&u.spd) S.units={len:u.len,spd:u.spd,wt:u.wt||"kg"}; }catch(e){}
 const IN=0.0254;                                 // metres per inch
 const trimNum=(x,dp)=>String(+x.toFixed(dp));    // toFixed without trailing zeros
 function fmtLen(m,dp){                            // metres -> current length unit
@@ -38,6 +38,10 @@ function fmtSpd(kmh){                             // km/h -> current speed unit
   if(S.units.spd==="mph") return trimNum(kmh*0.621371,1)+" mph";
   if(S.units.spd==="kn")  return trimNum(kmh*0.539957,1)+" kn";
   return trimNum(kmh,1)+" km/h";
+}
+function fmtWt(kg){                               // kg -> current weight unit
+  if(S.units.wt==="lb") return trimNum(kg*2.20462,1)+" lb";
+  return trimNum(kg,1)+" kg";
 }
 const lenToM   = x => S.units.len==="ftin" ? x*IN : x/100;   // input number -> metres
 const mToLenNum= m => S.units.len==="ftin" ? m/IN : m*100;   // metres -> input number
@@ -240,8 +244,8 @@ fmtSlider("L","L",0.01, m=>fmtLen(m,1));
 fmtSlider("speed","V",1, fmtSpd);
 fmtSlider("speedRef","Vref",1, fmtSpd);
 fmtSlider("cop","copTravel",0.01, m=>fmtLen(m,1));
-fmtSlider("Wr","Wr",1, w=>trimNum(w,1));
-fmtSlider("Wb","Wb",1, w=>trimNum(w,1));
+fmtSlider("Wr","Wr",1, fmtWt);
+fmtSlider("Wb","Wb",1, fmtWt);
 fmtSlider("padCenter","padCenter",0.01, m=>fmtLen(m,0));
 fmtSlider("padLen","padLen",0.01, m=>fmtLen(m,0));
 fmtSlider("boardLen","boardLen",0.01, m=>fmtLen(m,0));
@@ -319,21 +323,20 @@ $("goExperiment").addEventListener("click",()=>selectTab("tab-experiment"));
 // units selector — relabels everything without changing the underlying (metric) state
 function saveUnits(){ try{ localStorage.setItem("fbf-units",JSON.stringify(S.units)); }catch(e){} }
 function measUnitLabel(){ $("meas-unit").textContent = S.units.len==="ftin" ? "in" : "cm"; }
-function applyUnits(len,spd){
+function applyUnits(){
   const measM=lenToM(parseFloat($("meas").value)||0);   // read the field in the OLD unit first
-  S.units={len,spd};
+  S.units={len:$("unitLen").value, spd:$("unitSpd").value, wt:$("unitWt").value};
   $("meas").value=trimNum(mToLenNum(measM),1);           // re-express it in the NEW unit
   measUnitLabel(); saveUnits();
   refreshers.forEach(fn=>fn()); render();
 }
-$("unitLen").addEventListener("change",()=>applyUnits($("unitLen").value,$("unitSpd").value));
-$("unitSpd").addEventListener("change",()=>applyUnits($("unitLen").value,$("unitSpd").value));
+["unitLen","unitSpd","unitWt"].forEach(id=>$(id).addEventListener("change",applyUnits));
 
 recomputeTrack();
 updateNames();
 updateMastBounds();
 // reflect any persisted unit choice on load (HTML authored in cm, so convert the meas field once)
-$("unitLen").value=S.units.len; $("unitSpd").value=S.units.spd;
+$("unitLen").value=S.units.len; $("unitSpd").value=S.units.spd; $("unitWt").value=S.units.wt;
 $("meas").value=trimNum(mToLenNum((parseFloat($("meas").value)||0)/100),1);
 measUnitLabel();
 refreshers.forEach(fn=>fn());

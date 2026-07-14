@@ -72,10 +72,10 @@ consistent speed unit works. Set **CoP travel** to `0` for pure statics.
 
 ## Inputs
 
-Lengths can be shown in **cm** or **ft / in**, and speed in **km/h**, **mph**, or
-**knots**, via the Units selector at the top. It's a display choice only — the
-model works in metres internally and the numbers are unaffected. The choice is
-remembered between visits.
+Lengths can be shown in **cm** or **ft / in**, speed in **km/h**, **mph**, or
+**knots**, and weight in **kg** or **lb**, via the Units selector at the top.
+It's a display choice only — the model works in metres and kilograms internally
+and the numbers are unaffected. The choice is remembered between visits.
 
 - **Board & track** — board name, board length, board CG, footpad centre and
   length, mast track length, and the setback from the tail to the aft end of the

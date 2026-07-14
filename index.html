@@ -37,6 +37,12 @@
         <option value="kn">knots</option>
       </select>
     </label>
+    <label class="unitpick">Weight
+      <select id="unitWt">
+        <option value="kg">kg</option>
+        <option value="lb">lb</option>
+      </select>
+    </label>
   </div>
 
   <!-- ───────────── SETUP: describe the board & foil ───────────── -->
@@ -109,11 +115,11 @@
           </div>
           <div class="two">
             <div class="ctrl">
-              <label style="display:block"><b>You + gear</b> <span class="val mono" id="v-Wr">85</span></label>
+              <label style="display:block"><b>You + gear</b> <span class="val mono" id="v-Wr">85 kg</span></label>
               <input id="Wr" type="range" min="55" max="110" step="0.5" value="85">
             </div>
             <div class="ctrl">
-              <label style="display:block"><b>Board kg</b> <span class="val mono" id="v-Wb">7.6</span></label>
+              <label style="display:block"><b>Board weight</b> <span class="val mono" id="v-Wb">7.6 kg</span></label>
               <input id="Wb" type="range" min="3" max="9" step="0.1" value="7.6">
             </div>
           </div>
