@@ -219,8 +219,8 @@ fmtSlider("Wr","Wr",1,v=>v);
 fmtSlider("Wb","Wb",1,v=>v);
 fmtSlider("padCenter","padCenter",0.01,v=>v+" cm");
 fmtSlider("padLen","padLen",0.01,v=>v+" cm");
-fmtSlider("boardLen","boardLen",0.01,v=>v);
-fmtSlider("boardCG","boardCG",0.01,v=>v);
+fmtSlider("boardLen","boardLen",0.01,v=>v+" cm");
+fmtSlider("boardCG","boardCG",0.01,v=>v+" cm");
 fmtSlider("mastPos","mastPos",0.01,v=>v+" cm");
 
 function updateMastBounds(){
@@ -234,7 +234,7 @@ function updateMastBounds(){
   const out=$("v-"+id);
   $(id).addEventListener("input",()=>{
     S[id]=parseFloat($(id).value)/100;
-    out.textContent=Math.round(S[id]*100);
+    out.textContent=Math.round(S[id]*100)+" cm";
     recomputeTrack(); updateMastBounds(); render();
   });
 });
@@ -254,8 +254,8 @@ $("reset").addEventListener("click",()=>{
   const set=(id,v,t)=>{$(id).value=v; if($("v-"+id))$("v-"+id).textContent=t;};
   set("a",20,"20 cm");set("f",11,"11%");set("L",40,"40 cm");set("Wr",85,"85");set("Wb",7.6,"7.6");
   set("speed",24,"24 km/h");set("speedRef",24,"24");set("cop",3,"3");
-  set("padCenter",82,"82 cm");set("padLen",42,"42 cm");set("boardLen",155,"155");set("boardCG",72,"72");
-  set("trackLen",28,"28");set("trackSetback",58,"58");
+  set("padCenter",82,"82 cm");set("padLen",42,"42 cm");set("boardLen",155,"155 cm");set("boardCG",72,"72 cm");
+  set("trackLen",28,"28 cm");set("trackSetback",58,"58 cm");
   recomputeTrack(); updateMastBounds(); render();
 });
 
