@@ -21,6 +21,31 @@ const svg = $("scene");
 
 function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
 
+// ---- unit display (internal state stays metres / km/h; convert at the edge) ----
+S.units = {len:"cm", spd:"kmh", wt:"kg"};
+try{ const u=JSON.parse(localStorage.getItem("fbf-units")); if(u&&u.len&&u.spd) S.units={len:u.len,spd:u.spd,wt:u.wt||"kg"}; }catch(e){}
+const IN=0.0254;                                 // metres per inch
+const trimNum=(x,dp)=>String(+x.toFixed(dp));    // toFixed without trailing zeros
+function fmtLen(m,dp){                            // metres -> current length unit
+  if(S.units.len==="ftin"){
+    const inch=m/IN, sign=inch<0?"-":"", a=Math.abs(inch);
+    if(a>=12){ const ft=Math.floor(a/12); return `${sign}${ft}′ ${(a-ft*12).toFixed(1)}″`; }
+    return `${sign}${a.toFixed(1)}″`;
+  }
+  return trimNum(m*100,dp)+" cm";
+}
+function fmtSpd(kmh){                             // km/h -> current speed unit
+  if(S.units.spd==="mph") return trimNum(kmh*0.621371,1)+" mph";
+  if(S.units.spd==="kn")  return trimNum(kmh*0.539957,1)+" kn";
+  return trimNum(kmh,1)+" km/h";
+}
+function fmtWt(kg){                               // kg -> current weight unit
+  if(S.units.wt==="lb") return trimNum(kg*2.20462,1)+" lb";
+  return trimNum(kg,1)+" kg";
+}
+const lenToM   = x => S.units.len==="ftin" ? x*IN : x/100;   // input number -> metres
+const mToLenNum= m => S.units.len==="ftin" ? m/IN : m*100;   // metres -> input number
+
 // Front-wing centre of pressure drifts with angle of attack (i.e. speed): faster ->
 // lower AoA -> CoP aft -> smaller effective offset. Ratio-based, so speed units cancel.
 function effA(){
@@ -160,31 +185,31 @@ function render(){
 
   svg.innerHTML=g_; attachDrag();
 
-  // ---- trim readouts ----
-  $("ro-delta").textContent=(d.u_r_star*100).toFixed(1)+" cm";
-  $("ro-cur").textContent=(u_r*100).toFixed(1)+" cm";
+  // ---- trim readouts ---- (all lengths in metres internally; fmtLen picks the unit)
+  $("ro-delta").textContent=fmtLen(d.u_r_star,1);
+  $("ro-cur").textContent=fmtLen(u_r,1);
   const t=$("ro-trim");
   if(Math.abs(off)<0.004){t.textContent="level";t.className="tag level";}
   else if(off>0){t.textContent="nose down";t.className="tag up";}
   else {t.textContent="nose up";t.className="tag down";}
-  $("ro-off").textContent=(off*100>=0?"+":"")+(off*100).toFixed(1)+" cm";
+  $("ro-off").textContent=(off>=0?"+":"")+fmtLen(off,1);
   $("ro-mom").textContent=moment.toFixed(0)+" N·m";
 
-  // ---- board-fit readouts ----
-  $("ro-fromtail").textContent=(d.X_r_star*100).toFixed(0)+" cm";
-  const padA=(S.padCenter-S.padLen/2)*100, padB=(S.padCenter+S.padLen/2)*100;
-  $("ro-padzone").textContent=padA.toFixed(0)+"–"+padB.toFixed(0)+" cm";
+  // ---- board-fit readouts ---- (metres; pad/track compared in metres)
+  $("ro-fromtail").textContent=fmtLen(d.X_r_star,0);
+  const padA=S.padCenter-S.padLen/2, padB=S.padCenter+S.padLen/2;
+  $("ro-padzone").textContent=fmtLen(padA,0)+"–"+fmtLen(padB,0);
   const onpad=$("ro-onpad");
-  const Xr=d.X_r_star*100;
+  const Xr=d.X_r_star;
   if(Xr>=padA && Xr<=padB){onpad.textContent="yes ✓";onpad.className="tag yes";}
   else {onpad.textContent=(Xr<padA?"off the back":"off the front")+" ✗";onpad.className="tag no";}
-  $("ro-need").textContent=(d.mastNeeded*100).toFixed(0)+" cm from tail";
+  $("ro-need").textContent=fmtLen(d.mastNeeded,0)+" from tail";
   const reach=$("ro-reach");
-  const need=d.mastNeeded*100, tA=S.trackFront*100, tB=S.trackBack*100;
+  const need=d.mastNeeded, tA=S.trackFront, tB=S.trackBack;
   if(need>=tA && need<=tB){reach.textContent="yes ✓";reach.className="tag yes";}
   else {
     const miss = need<tA ? (tA-need) : (need-tB);
-    reach.textContent=`no — ${miss.toFixed(0)} cm short ✗`; reach.className="tag no";
+    reach.textContent=`no — ${fmtLen(miss,0)} short ✗`; reach.className="tag no";
   }
 }
 
@@ -204,39 +229,44 @@ svg.addEventListener("pointermove",e=>{
 });
 window.addEventListener("pointerup",()=>{dragging=false;});
 
-// controls
+// controls. fmt receives the stored value (metres for lengths, km/h for speed);
+// each label updater is registered so switching units can relabel without re-input.
+const refreshers=[];
 function fmtSlider(id,key,factor,fmt){
   const el=$(id), out=$("v-"+id);
-  el.addEventListener("input",()=>{ S[key]=parseFloat(el.value)*factor; out.textContent=fmt(parseFloat(el.value)); render(); });
+  const upd=()=>{ out.textContent=fmt(S[key]); };
+  el.addEventListener("input",()=>{ S[key]=parseFloat(el.value)*factor; upd(); render(); });
+  refreshers.push(upd);
 }
-fmtSlider("a","a",0.01,v=>v+" cm");
-fmtSlider("f","f",0.01,v=>v+"%");
-fmtSlider("L","L",0.01,v=>v+" cm");
-fmtSlider("speed","V",1,v=>v+" km/h");
-fmtSlider("speedRef","Vref",1,v=>v);
-fmtSlider("cop","copTravel",0.01,v=>v);
-fmtSlider("Wr","Wr",1,v=>v);
-fmtSlider("Wb","Wb",1,v=>v);
-fmtSlider("padCenter","padCenter",0.01,v=>v+" cm");
-fmtSlider("padLen","padLen",0.01,v=>v+" cm");
-fmtSlider("boardLen","boardLen",0.01,v=>v);
-fmtSlider("boardCG","boardCG",0.01,v=>v);
-fmtSlider("mastPos","mastPos",0.01,v=>v+" cm");
+fmtSlider("a","a",0.01, m=>fmtLen(m,1));
+fmtSlider("f","f",0.01, f=>trimNum(f*100,0)+"%");
+fmtSlider("L","L",0.01, m=>fmtLen(m,1));
+fmtSlider("speed","V",1, fmtSpd);
+fmtSlider("speedRef","Vref",1, fmtSpd);
+fmtSlider("cop","copTravel",0.01, m=>fmtLen(m,1));
+fmtSlider("Wr","Wr",1, fmtWt);
+fmtSlider("Wb","Wb",1, fmtWt);
+fmtSlider("padCenter","padCenter",0.01, m=>fmtLen(m,0));
+fmtSlider("padLen","padLen",0.01, m=>fmtLen(m,0));
+fmtSlider("boardLen","boardLen",0.01, m=>fmtLen(m,0));
+fmtSlider("boardCG","boardCG",0.01, m=>fmtLen(m,0));
+fmtSlider("mastPos","mastPos",0.01, m=>fmtLen(m,0));
 
 function updateMastBounds(){
   const el=$("mastPos");
   el.min=(S.trackFront*100).toFixed(0); el.max=(S.trackBack*100).toFixed(0);
   S.mastPos=clamp(S.mastPos, S.trackFront, S.trackBack);
   el.value=(S.mastPos*100).toFixed(1);
-  $("v-mastPos").textContent=(S.mastPos*100).toFixed(0)+" cm";
+  $("v-mastPos").textContent=fmtLen(S.mastPos,0);
 }
 ["trackLen","trackSetback"].forEach(id=>{
   const out=$("v-"+id);
+  const upd=()=>{ out.textContent=fmtLen(S[id],0); };
   $(id).addEventListener("input",()=>{
     S[id]=parseFloat($(id).value)/100;
-    out.textContent=Math.round(S[id]*100);
-    recomputeTrack(); updateMastBounds(); render();
+    upd(); recomputeTrack(); updateMastBounds(); render();
   });
+  refreshers.push(upd);
 });
 
 // board / foil name labels feed the header kicker
@@ -249,18 +279,19 @@ function updateNames(){
 
 $("snap").addEventListener("click",()=>{ S.rX=derive().X_r_star; render(); });
 $("reset").addEventListener("click",()=>{
+  // Object.assign leaves S.units untouched — reset restores values, not the unit choice.
   Object.assign(S,{a:0.20,L:0.40,f:0.11,V:24,Vref:24,copTravel:0.03,Wr:85,Wb:7.6,boardLen:1.55,boardCG:0.72,
     padCenter:0.82,padLen:0.42,trackLen:0.28,trackSetback:0.58,trackFront:0.58,trackBack:0.86,mastPos:0.64,rX:null});
-  const set=(id,v,t)=>{$(id).value=v; if($("v-"+id))$("v-"+id).textContent=t;};
-  set("a",20,"20 cm");set("f",11,"11%");set("L",40,"40 cm");set("Wr",85,"85");set("Wb",7.6,"7.6");
-  set("speed",24,"24 km/h");set("speedRef",24,"24");set("cop",3,"3");
-  set("padCenter",82,"82 cm");set("padLen",42,"42 cm");set("boardLen",155,"155");set("boardCG",72,"72");
-  set("trackLen",28,"28");set("trackSetback",58,"58");
-  recomputeTrack(); updateMastBounds(); render();
+  const setv=(id,v)=>{ $(id).value=v; };   // slider values are native cm/km-h regardless of display unit
+  setv("a",20);setv("f",11);setv("L",40);setv("Wr",85);setv("Wb",7.6);
+  setv("speed",24);setv("speedRef",24);setv("cop",3);
+  setv("padCenter",82);setv("padLen",42);setv("boardLen",155);setv("boardCG",72);
+  setv("trackLen",28);setv("trackSetback",58);
+  recomputeTrack(); updateMastBounds(); refreshers.forEach(fn=>fn()); render();
 });
 
 $("calib").addEventListener("click",()=>{
-  const meas=(parseFloat($("meas").value)||0)/100;
+  const meas=lenToM(parseFloat($("meas").value)||0);   // the meas field is in the current length unit
   const W=S.Wr+S.Wb, b=S.boardCG-S.mastPos;
   let f=(S.Wr*meas + S.Wb*b - W*effA())/(W*S.L);
   const note=$("calib-note");
@@ -276,7 +307,37 @@ $("calib").addEventListener("click",()=>{
   S.rX=null; render();
 });
 
+// tabs: Setup (describe board+foil) / Experiment (tune the fit)
+const TABS=[["tab-setup","panel-setup"],["tab-experiment","panel-experiment"]];
+function selectTab(tabId){
+  TABS.forEach(([t,p])=>{
+    const on=t===tabId;
+    $(t).setAttribute("aria-selected", on?"true":"false");
+    $(p).hidden=!on;
+  });
+  if(tabId==="tab-experiment") render();   // scene was hidden; refresh now it's laid out
+}
+TABS.forEach(([t])=>$(t).addEventListener("click",()=>selectTab(t)));
+$("goExperiment").addEventListener("click",()=>selectTab("tab-experiment"));
+
+// units selector — relabels everything without changing the underlying (metric) state
+function saveUnits(){ try{ localStorage.setItem("fbf-units",JSON.stringify(S.units)); }catch(e){} }
+function measUnitLabel(){ $("meas-unit").textContent = S.units.len==="ftin" ? "in" : "cm"; }
+function applyUnits(){
+  const measM=lenToM(parseFloat($("meas").value)||0);   // read the field in the OLD unit first
+  S.units={len:$("unitLen").value, spd:$("unitSpd").value, wt:$("unitWt").value};
+  $("meas").value=trimNum(mToLenNum(measM),1);           // re-express it in the NEW unit
+  measUnitLabel(); saveUnits();
+  refreshers.forEach(fn=>fn()); render();
+}
+["unitLen","unitSpd","unitWt"].forEach(id=>$(id).addEventListener("change",applyUnits));
+
 recomputeTrack();
 updateNames();
 updateMastBounds();
+// reflect any persisted unit choice on load (HTML authored in cm, so convert the meas field once)
+$("unitLen").value=S.units.len; $("unitSpd").value=S.units.spd; $("unitWt").value=S.units.wt;
+$("meas").value=trimNum(mToLenNum((parseFloat($("meas").value)||0)/100),1);
+measUnitLabel();
+refreshers.forEach(fn=>fn());
 render();
